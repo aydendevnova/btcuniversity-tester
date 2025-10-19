@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BTC University - Testing Interface</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial;
+        line-height: 1.4;
+        padding: 16px;
+        background: #f9fafb;
+      }
+      h1 {
+        font-size: 24px;
+        margin: 0 0 8px;
+        color: #111827;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0 0 8px;
+        color: #374151;
+      }
+      fieldset {
+        margin: 12px 0;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+      }
+      legend {
+        padding: 0 8px;
+        font-weight: 600;
+        color: #111827;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        max-width: 420px;
+        padding: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      textarea {
+        min-height: 60px;
+        resize: vertical;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      button {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+      button:hover {
+        background: #f9fafb;
+      }
+      button.primary {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+      }
+      button.primary:hover {
+        background: #1d4ed8;
+      }
+      button.success {
+        background: #059669;
+        color: white;
+        border-color: #059669;
+      }
+      button.success:hover {
+        background: #047857;
+      }
+      .muted {
+        color: #6b7280;
+        font-size: 12px;
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+      }
+      .list {
+        padding: 8px 0;
+      }
+      .card {
+        border: 1px solid #e5e7eb;
+        padding: 12px;
+        border-radius: 6px;
+        margin: 6px 0;
+        background: white;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+      }
+      .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .status.success {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .status.error {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .status.info {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      #result {
+        margin-top: 12px;
+        padding: 8px;
+        border-radius: 6px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        word-break: break-all;
+      }
+      .input-group {
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>BTC University - Testing Interface</h1>
+    <div class="row" style="margin-bottom: 12px">
+      <button id="btn-connect" class="primary">Connect Wallet</button>
+      <button id="btn-disconnect">Disconnect</button>
+      <span class="muted">Address:</span>
+      <span id="addr" class="mono muted">-</span>
+    </div>
+    <div class="muted" style="margin-bottom: 12px; font-size: 11px">
+      💡 Requires Stacks wallet extension (Leather, Xverse, etc.)
+    </div>
+
+    <fieldset>
+      <legend>Environment</legend>
+      <div class="row" style="gap: 16px">
+        <div>
+          <label for="network">Network</label>
+          <select id="network">
+            <option value="testnet">testnet</option>
+            <option value="mainnet">mainnet</option>
+          </select>
+        </div>
+        <div>
+          <label for="contract-address">BTC Uni Contract Address</label>
+          <input
+            id="contract-address"
+            placeholder="ST..."
+            value="ST351E8C8VBAQ7PTRV0ZMVQXNWBBX9B3WTHR2Z27R"
+          />
+        </div>
+        <div>
+          <label for="contract-name">BTC Uni Contract Name</label>
+          <input id="contract-name" placeholder="btcuni" value="btcuni" />
+        </div>
+        <div>
+          <label for="ft-contract-address">sBTC Token Address</label>
+          <input
+            id="ft-contract-address"
+            placeholder="ST..."
+            value="ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT"
+          />
+        </div>
+        <div>
+          <label for="ft-contract-name">sBTC Token Name</label>
+          <input
+            id="ft-contract-name"
+            placeholder="sbtc-token"
+            value="sbtc-token"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Whitelist Management</legend>
+      <h2>Self-Enrollment (Requires min 0.001 BTC in sBTC)</h2>
+      <div class="row">
+        <button id="btn-enroll-whitelist" class="success">
+          Self-Enroll to Whitelist
+        </button>
+        <span class="muted">
+          Requires at least 100,000 satoshis (0.001 BTC) in sBTC
+        </span>
+      </div>
+
+      <h2 style="margin-top: 16px">Admin: Whitelist Operations</h2>
+      <div class="input-group">
+        <label for="student-address">Student Address</label>
+        <input id="student-address" type="text" placeholder="ST..." value="" />
+      </div>
+      <div class="row" style="margin-bottom: 8px">
+        <button id="btn-add-whitelist">Add to Whitelist</button>
+        <button id="btn-remove-whitelist">Remove from Whitelist</button>
+        <button id="btn-check-whitelist">Check Whitelist Status</button>
+      </div>
+      <div id="whitelist-result" class="muted mono"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Course Management</legend>
+      <h2>Add New Course (Owner Only)</h2>
+      <div class="input-group">
+        <label for="course-name">Course Name</label>
+        <input
+          id="course-name"
+          type="text"
+          placeholder="Bitcoin Basics"
+          value="Bitcoin Basics 101"
+        />
+      </div>
+      <div class="input-group">
+        <label for="course-details">Course Details</label>
+        <textarea id="course-details" placeholder="Course description...">
+Learn the fundamentals of Bitcoin and blockchain technology</textarea
+        >
+      </div>
+      <div class="row" style="gap: 16px">
+        <div>
+          <label for="instructor-address">Instructor Address</label>
+          <input
+            id="instructor-address"
+            type="text"
+            placeholder="ST..."
+            value=""
+          />
+        </div>
+        <div>
+          <label for="course-price">Price (micro units)</label>
+          <input
+            id="course-price"
+            type="number"
+            placeholder="10000000"
+            value="10000000"
+          />
+        </div>
+        <div>
+          <label for="max-students">Max Students</label>
+          <input id="max-students" type="number" placeholder="100" value="50" />
+        </div>
+      </div>
+      <div class="row" style="margin-top: 8px">
+        <button id="btn-add-course" class="primary">Add Course</button>
+      </div>
+
+      <h2 style="margin-top: 16px">View Courses</h2>
+      <div class="row" style="margin-bottom: 8px">
+        <button id="btn-get-course-count">Get Course Count</button>
+        <button id="btn-get-all-courses" class="primary">
+          Get All Courses
+        </button>
+        <input
+          id="course-id-input"
+          type="number"
+          placeholder="Course ID"
+          value="1"
+          style="max-width: 120px"
+        />
+        <button id="btn-get-course-details">Get Course Details</button>
+      </div>
+      <div id="courses-list" class="list"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Course Enrollment</legend>
+      <h2>Enroll in a Course</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 12px">
+        <div>
+          <label for="enroll-course-id">Course ID</label>
+          <input
+            id="enroll-course-id"
+            type="number"
+            placeholder="1"
+            value="1"
+            style="max-width: 120px"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btn-enroll-course" class="success">
+          Enroll in Course (Transfer sBTC)
+        </button>
+        <span class="muted">Requires whitelist + course price in sBTC</span>
+      </div>
+
+      <h2 style="margin-top: 16px">Check Enrollment Status</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 8px">
+        <div>
+          <label for="check-course-id">Course ID</label>
+          <input
+            id="check-course-id"
+            type="number"
+            placeholder="1"
+            value="1"
+            style="max-width: 120px"
+          />
+        </div>
+        <div>
+          <label for="check-student-address">Student Address</label>
+          <input
+            id="check-student-address"
+            type="text"
+            placeholder="ST... (leave empty for self)"
+            value=""
+          />
+        </div>
+      </div>
+      <div class="row" style="margin-bottom: 8px">
+        <button id="btn-check-enrollment">Check Enrollment</button>
+        <button id="btn-get-enrolled-ids" class="primary">
+          Get My Enrolled Course IDs
+        </button>
+      </div>
+      <div id="enrollment-result" class="muted mono"></div>
+
+      <h2 style="margin-top: 16px">My Enrolled Courses</h2>
+      <div id="enrolled-courses-list" class="list"></div>
+
+      <h2 style="margin-top: 16px">Complete Course (Instructor/Owner Only)</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 8px">
+        <div>
+          <label for="complete-course-id">Course ID</label>
+          <input
+            id="complete-course-id"
+            type="number"
+            placeholder="1"
+            value="1"
+            style="max-width: 120px"
+          />
+        </div>
+        <div>
+          <label for="complete-student-address">Student Address</label>
+          <input
+            id="complete-student-address"
+            type="text"
+            placeholder="ST..."
+            value=""
+          />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btn-complete-course">Mark Course as Complete</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Fee Management (Instructor Only)</legend>
+      <div class="row" style="gap: 16px; margin-bottom: 8px">
+        <div>
+          <label for="claim-course-id">Course ID</label>
+          <input
+            id="claim-course-id"
+            type="number"
+            placeholder="1"
+            value="1"
+            style="max-width: 120px"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btn-claim-fees" class="success">
+          Claim Course Fees (sBTC)
+        </button>
+        <span class="muted">
+          Instructor can claim accumulated fees from enrollments
+        </span>
+      </div>
+    </fieldset>
+
+    <div id="result" class="mono" style="display: none"></div>
+
+    <script type="module">
+      import { BtcUniversity as BtcUniModule } from "./src/main.ts";
+      (function () {
+        const B = window.BtcUniversity || BtcUniModule;
+        if (!B) return;
+
+        const byId = (id) => document.getElementById(id);
+        const $addr = byId("addr");
+        const $result = byId("result");
+        const $net = byId("network");
+        const $ca = byId("contract-address");
+        const $cn = byId("contract-name");
+        const $ftCa = byId("ft-contract-address");
+        const $ftCn = byId("ft-contract-name");
+
+        function renderAddress() {
+          $addr.textContent = B.getAddress() || "-";
+        }
+
+        function setEnvFromInputs() {
+          try {
+            B.setNetwork($net.value);
+          } catch {}
+          try {
+            B.setContract($ca.value, $cn.value);
+          } catch {}
+          try {
+            B.setSbtcToken($ftCa.value, $ftCn.value);
+          } catch {}
+        }
+
+        function showResult(msg, type = "info") {
+          $result.style.display = "block";
+          $result.innerHTML = `<span class="status ${type}">${type.toUpperCase()}</span> ${msg}`;
+          console.log(`[${type}]`, msg);
+        }
+
+        function renderCourses(courses) {
+          const $list = byId("courses-list");
+          if (!courses || courses.length === 0) {
+            $list.innerHTML = '<div class="muted">No courses found</div>';
+            return;
+          }
+
+          $list.innerHTML = courses
+            .map((c, index) => {
+              if (!c) return "";
+              const name = c.name?.value || c.name || "Unknown";
+              const details = c.details?.value || c.details || "";
+              const price = c.price?.value || c.price || 0;
+              const instructor = c.instructor?.value || c.instructor || "";
+              const maxStudents =
+                c["max-students"]?.value || c.maxStudents || 0;
+
+              return `
+                <div class="card">
+                  <strong>Course ${index + 1}: ${name}</strong><br/>
+                  <span class="muted">${details}</span><br/>
+                  <span class="mono">Price: ${price} micro units</span><br/>
+                  <span class="mono">Max Students: ${maxStudents}</span><br/>
+                  <span class="muted">Instructor: ${instructor}</span>
+                </div>
+              `;
+            })
+            .join("");
+        }
+
+        // Connection
+        byId("btn-connect").onclick = async () => {
+          try {
+            await B.connect();
+            renderAddress();
+            showResult("Wallet connected successfully", "success");
+          } catch (e) {
+            showResult(
+              "Failed to connect wallet: " + (e?.message || String(e)),
+              "error"
+            );
+            console.error("Connection error:", e);
+          }
+        };
+
+        byId("btn-disconnect").onclick = () => {
+          B.disconnect();
+          renderAddress();
+        };
+
+        // Whitelist
+        byId("btn-enroll-whitelist").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const tx = await B.enrollWhitelist();
+            showResult(`Whitelist enrollment tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-add-whitelist").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const student = byId("student-address").value;
+            if (!student) {
+              alert("Enter student address");
+              return;
+            }
+            const tx = await B.addWhitelist(student);
+            showResult(`Add whitelist tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-remove-whitelist").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const student = byId("student-address").value;
+            if (!student) {
+              alert("Enter student address");
+              return;
+            }
+            const tx = await B.removeWhitelist(student);
+            showResult(`Remove whitelist tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-check-whitelist").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const student = byId("student-address").value || B.getAddress();
+            if (!student) {
+              alert("Connect wallet or enter student address");
+              return;
+            }
+            const isWhitelisted = await B.isWhitelisted(student);
+            byId("whitelist-result").textContent = `${student}: ${
+              isWhitelisted ? "✓ Whitelisted" : "✗ Not whitelisted"
+            }`;
+          } catch (e) {
+            byId("whitelist-result").textContent = e?.message || String(e);
+          }
+        };
+
+        // Courses
+        byId("btn-add-course").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const name = byId("course-name").value;
+            const details = byId("course-details").value;
+            const instructor =
+              byId("instructor-address").value || B.getAddress();
+            const price = byId("course-price").value;
+            const maxStudents = byId("max-students").value;
+
+            if (!name || !details || !instructor) {
+              alert("Fill all course fields");
+              return;
+            }
+
+            const tx = await B.addCourse(
+              name,
+              details,
+              instructor,
+              price,
+              maxStudents
+            );
+            showResult(`Add course tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-get-course-count").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const count = await B.getCourseCount();
+            showResult(`Total courses: ${count}`, "info");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-get-all-courses").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courses = await B.getAllCourses();
+            console.log("All courses:", courses);
+            renderCourses(courses);
+            showResult(`Fetched ${courses.length} courses`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-get-course-details").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("course-id-input").value;
+            if (!courseId) {
+              alert("Enter course ID");
+              return;
+            }
+            const course = await B.getCourseDetails(courseId);
+            console.log(`Course ${courseId}:`, course);
+            renderCourses([course]);
+            showResult(`Fetched course ${courseId}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        // Enrollment
+        byId("btn-enroll-course").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("enroll-course-id").value;
+            if (!courseId) {
+              alert("Enter course ID");
+              return;
+            }
+            const tx = await B.enrollCourse(courseId);
+            showResult(`Enroll course tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-check-enrollment").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("check-course-id").value;
+            const student =
+              byId("check-student-address").value || B.getAddress();
+            if (!courseId || !student) {
+              alert("Enter course ID and student address");
+              return;
+            }
+            const isEnrolled = await B.isEnrolled(courseId, student);
+            byId(
+              "enrollment-result"
+            ).textContent = `Course ${courseId} - ${student}: ${
+              isEnrolled ? "✓ Enrolled" : "✗ Not enrolled"
+            }`;
+          } catch (e) {
+            byId("enrollment-result").textContent = e?.message || String(e);
+          }
+        };
+
+        byId("btn-get-enrolled-ids").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const student = B.getAddress();
+            if (!student) {
+              alert("Connect wallet first");
+              return;
+            }
+            const ids = await B.getEnrolledIds(student);
+            console.log("Enrolled course IDs:", ids);
+
+            byId("enrollment-result").textContent = `Enrolled courses: ${
+              ids.length > 0 ? ids.join(", ") : "None"
+            }`;
+
+            // Fetch and display full course details for enrolled courses
+            if (ids.length > 0) {
+              const enrolledCourses = [];
+              for (const id of ids) {
+                try {
+                  const course = await B.getCourseDetails(id);
+                  if (course) {
+                    enrolledCourses.push({ id, ...course });
+                  }
+                } catch (e) {
+                  console.error(`Error fetching course ${id}:`, e);
+                }
+              }
+
+              const $enrolledList = byId("enrolled-courses-list");
+              if (enrolledCourses.length > 0) {
+                $enrolledList.innerHTML = enrolledCourses
+                  .map((c) => {
+                    const name = c.name?.value || c.name || "Unknown";
+                    const details = c.details?.value || c.details || "";
+                    const price = c.price?.value || c.price || 0;
+                    const instructor =
+                      c.instructor?.value || c.instructor || "";
+
+                    return `
+                      <div class="card">
+                        <strong>Course ${c.id}: ${name}</strong>
+                        <span class="status success">Enrolled ✓</span><br/>
+                        <span class="muted">${details}</span><br/>
+                        <span class="mono">Price: ${price} micro units</span><br/>
+                        <span class="muted">Instructor: ${instructor}</span>
+                      </div>
+                    `;
+                  })
+                  .join("");
+              } else {
+                $enrolledList.innerHTML =
+                  '<div class="muted">No enrolled courses found</div>';
+              }
+            } else {
+              byId("enrolled-courses-list").innerHTML =
+                '<div class="muted">No enrolled courses yet</div>';
+            }
+
+            showResult(`Found ${ids.length} enrolled course(s)`, "success");
+          } catch (e) {
+            byId("enrollment-result").textContent = e?.message || String(e);
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-complete-course").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("complete-course-id").value;
+            const student = byId("complete-student-address").value;
+            if (!courseId || !student) {
+              alert("Enter course ID and student address");
+              return;
+            }
+            const tx = await B.completeCourse(courseId, student);
+            showResult(`Complete course tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        // Fees
+        byId("btn-claim-fees").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("claim-course-id").value;
+            if (!courseId) {
+              alert("Enter course ID");
+              return;
+            }
+            const tx = await B.claimCourseFees(courseId);
+            showResult(`Claim fees tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        // Environment inputs
+        $net.onchange = () => {
+          B.setNetwork($net.value);
+          renderAddress();
+        };
+        $ca.onchange = () => B.setContract($ca.value, $cn.value);
+        $cn.onchange = () => B.setContract($ca.value, $cn.value);
+        $ftCa.onchange = () => B.setSbtcToken($ftCa.value, $ftCn.value);
+        $ftCn.onchange = () => B.setSbtcToken($ftCa.value, $ftCn.value);
+
+        // Init
+        try {
+          const s = B.getSettings();
+          if ($net.value !== s.net) $net.value = s.net;
+          if ($ca.value && $cn.value) B.setContract($ca.value, $cn.value);
+          if ($ftCa.value && $ftCn.value)
+            B.setSbtcToken($ftCa.value, $ftCn.value);
+        } catch {}
+        renderAddress();
+      })();
+    </script>
+  </body>
+</html>
