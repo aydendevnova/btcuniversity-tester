@@ -4,13 +4,16 @@ Testing interface for the BTC University smart contracts on Stacks blockchain wi
 
 ## Overview
 
-This project provides a web-based testing interface for the BTC University smart contracts, enabling:
+Web-based testing interface for BTC University smart contracts with **secure owner-controlled sBTC**:
 
-- **Whitelist Management**: Self-enrollment and admin whitelist operations
-- **Course Management**: Create, view, and manage courses
-- **Course Enrollment**: Enroll in courses with sBTC payments
-- **Fee Claiming**: Instructors can claim accumulated course fees
-- **Course Completion**: Track student progress and completions
+- **Whitelist Management**: Self-enrollment with sBTC balance check
+- **Course Management**: Create and manage courses
+- **Course Enrollment**: Enroll in courses with sBTC payments (validated)
+- **Fee Claiming**: Instructors claim accumulated sBTC fees (validated)
+- **Course Completion**: Track student progress
+
+**✅ sBTC testnet contract auto-configured** - Ready to test immediately!  
+**🔒 Security**: Contract validates sBTC address server-side (see `SECURITY-NOTE.md`)
 
 ## Smart Contracts
 
@@ -57,12 +60,16 @@ Visit `http://localhost:5173` to access the testing interface.
 
 ## Configuration
 
-Update the contract addresses in the interface:
+The tester auto-configures for testnet with these defaults:
 
-- **Network**: testnet or mainnet
-- **BTC Uni Contract**: Your deployed btcuni contract address
-- **sBTC Token**: The sBTC token contract address
-- **Oracle**: DIA oracle for sBTC price feeds
+- **Network**: testnet
+- **BTC Uni Contract**: `STGBG5A16AKQW65GYK23CXK3XPRVSVZFJKX0BA98.btc-university`
+- **sBTC Token**: `ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token` ✅ Auto-filled
+
+**Important Setup:**
+1. Update your deployed contract address in the interface
+2. Make sure contract owner has called `set-sbtc-contract` after deployment
+3. Verify configured sBTC matches (use "Check Configured sBTC" button)
 
 ## Testing Workflow
 
@@ -103,7 +110,10 @@ The tester uses `@stacks/connect` for wallet interactions and `@stacks/transacti
 ### Key Functions
 
 ```typescript
-// Whitelist
+// Security: Check configured sBTC
+BtcUniversity.getConfiguredSbtcContract(); // Returns owner-set sBTC address
+
+// Whitelist (auto-passes sBTC contract, validated by contract)
 BtcUniversity.enrollWhitelist();
 BtcUniversity.addWhitelist(student);
 BtcUniversity.isWhitelisted(student);
@@ -113,12 +123,12 @@ BtcUniversity.addCourse(name, details, instructor, price, maxStudents);
 BtcUniversity.getAllCourses();
 BtcUniversity.getCourseDetails(courseId);
 
-// Enrollment
+// Enrollment (auto-passes sBTC contract, validated by contract)
 BtcUniversity.enrollCourse(courseId);
 BtcUniversity.isEnrolled(courseId, student);
 BtcUniversity.getEnrolledIds(student);
 
-// Fees
+// Fees (auto-passes sBTC contract, validated by contract)
 BtcUniversity.claimCourseFees(courseId);
 ```
 

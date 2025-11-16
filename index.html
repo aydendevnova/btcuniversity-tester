@@ -90,9 +90,49 @@
       button.success:hover {
         background: #047857;
       }
+      button.danger {
+        background: #dc2626;
+        color: white;
+        border-color: #dc2626;
+      }
+      button.danger:hover {
+        background: #b91c1c;
+      }
       .muted {
         color: #6b7280;
         font-size: 12px;
+      }
+      .owner-only {
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+      .owner-only h2 {
+        color: #92400e;
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .owner-only .warning {
+        background: #fff7ed;
+        border-left: 4px solid #f59e0b;
+        padding: 12px;
+        margin: 12px 0;
+        font-size: 14px;
+      }
+      .security-check {
+        background: #e0f2fe;
+        border: 2px solid #0284c7;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+      .security-check h2 {
+        color: #0c4a6e;
+        margin-top: 0;
       }
       .mono {
         font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
@@ -173,12 +213,12 @@
           <input
             id="contract-address"
             placeholder="ST..."
-            value="ST351E8C8VBAQ7PTRV0ZMVQXNWBBX9B3WTHR2Z27R"
+            value="STGBG5A16AKQW65GYK23CXK3XPRVSVZFJKX0BA98"
           />
         </div>
         <div>
           <label for="contract-name">BTC Uni Contract Name</label>
-          <input id="contract-name" placeholder="btcuni" value="btcuni" />
+          <input id="contract-name" placeholder="btc-university" value="btc-university"/>
         </div>
         <div>
           <label for="ft-contract-address">sBTC Token Address</label>
@@ -198,6 +238,86 @@
         </div>
       </div>
     </fieldset>
+
+    <!-- OWNER ONLY SECTION - SECURITY CRITICAL -->
+    <div class="owner-only">
+      <h2>🔐 OWNER ONLY - Initialize sBTC Contract</h2>
+      <div class="warning">
+        ⚠️ <strong>CRITICAL SECURITY STEP:</strong> After deploying the BTC University contract, the owner MUST set the official sBTC contract address. This prevents attackers from using fake tokens.
+      </div>
+      
+      <p><strong>Instructions:</strong></p>
+      <ol style="margin: 8px 0; padding-left: 20px;">
+        <li>Deploy the BTC University contracts</li>
+        <li>Enter the official sBTC address below:
+          <ul style="margin: 4px 0; font-size: 13px;">
+            <li><strong>Testnet:</strong> <code>ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token</code></li>
+            <li><strong>Mainnet:</strong> <code>SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token</code></li>
+          </ul>
+        </li>
+        <li>Click "Set sBTC Contract" (only contract owner can do this)</li>
+        <li>Verify the configuration using "Security Check" below</li>
+      </ol>
+
+      <div class="input-group" style="margin-top: 12px;">
+        <label for="owner-sbtc-address">Official sBTC Contract Address</label>
+        <input
+          id="owner-sbtc-address"
+          type="text"
+          placeholder="ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT"
+          value="ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT"
+          style="font-family: monospace;"
+        />
+      </div>
+      <div class="input-group">
+        <label for="owner-sbtc-name">sBTC Contract Name</label>
+        <input
+          id="owner-sbtc-name"
+          type="text"
+          placeholder="sbtc-token"
+          value="sbtc-token"
+          style="font-family: monospace;"
+        />
+      </div>
+      
+      <div class="row">
+        <button id="btn-set-sbtc-contract" class="danger">
+          🔐 Set sBTC Contract (Owner Only)
+        </button>
+      </div>
+      <div id="owner-result" class="muted mono" style="margin-top: 8px;"></div>
+    </div>
+
+    <!-- SECURITY CHECK SECTION -->
+    <div class="security-check">
+      <h2>🔍 Security Check - Verify Configuration</h2>
+      <p>Check what sBTC contract is currently configured in the deployed contract:</p>
+      
+      <div class="row">
+        <button id="btn-check-configured-sbtc" class="primary">
+          Check Configured sBTC
+        </button>
+        <button id="btn-verify-match">
+          ✓ Verify Match
+        </button>
+      </div>
+      
+      <div id="security-result" style="margin-top: 12px;">
+        <div style="margin: 8px 0;">
+          <strong>Contract expects:</strong> <span id="configured-sbtc" class="mono" style="color: #0284c7;">-</span>
+        </div>
+        <div style="margin: 8px 0;">
+          <strong>Tester will pass:</strong> <span id="tester-sbtc" class="mono" style="color: #0284c7;">-</span>
+        </div>
+        <div style="margin: 8px 0;">
+          <strong>Status:</strong> <span id="match-status" class="status info">Not checked</span>
+        </div>
+      </div>
+      
+      <div class="muted" style="margin-top: 12px; font-size: 12px;">
+        ℹ️ If these don't match, transactions will fail with ERR-UNAUTHORIZED
+      </div>
+    </div>
 
     <fieldset>
       <legend>Whitelist Management</legend>
@@ -398,6 +518,9 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
 
     <script type="module">
       import { BtcUniversity as BtcUniModule } from "./src/main.ts";
+      import { request } from "@stacks/connect";
+      import { Cl } from "@stacks/transactions";
+      
       (function () {
         const B = window.BtcUniversity || BtcUniModule;
         if (!B) return;
@@ -462,6 +585,152 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
             })
             .join("");
         }
+
+        // Owner Functions - Set sBTC Contract
+        byId("btn-set-sbtc-contract").onclick = async () => {
+          try {
+            console.log("🔐 Setting sBTC contract...");
+            setEnvFromInputs();
+            const ownerAddr = byId("owner-sbtc-address").value.trim();
+            const ownerName = byId("owner-sbtc-name").value.trim();
+            
+            console.log("Owner sBTC Address:", ownerAddr);
+            console.log("Owner sBTC Name:", ownerName);
+            
+            if (!ownerAddr || !ownerName) {
+              byId("owner-result").textContent = "❌ Please enter both sBTC address and name";
+              return;
+            }
+            
+            byId("owner-result").textContent = "Setting sBTC contract... (requires owner wallet)";
+            
+            const settings = B.getSettings();
+            console.log("Settings:", settings);
+            const contractId = `${settings.ca}.${settings.cn}`;
+            console.log("Contract ID:", contractId);
+            
+            const sbtcPrincipal = Cl.contractPrincipal(ownerAddr, ownerName);
+            console.log("sBTC Principal:", sbtcPrincipal);
+            
+            const walletAddress = B.getAddress();
+            console.log("Wallet Address:", walletAddress);
+            
+            if (!walletAddress) {
+              byId("owner-result").textContent = "❌ Please connect wallet first";
+              showResult("Connect wallet before setting sBTC contract", "error");
+              return;
+            }
+            
+            console.log("Calling stx_callContract with:", {
+              contract: contractId,
+              functionName: "set-sbtc-contract",
+              functionArgs: [sbtcPrincipal],
+              address: walletAddress,
+              network: settings.net,
+            });
+            
+            const res = await request("stx_callContract", {
+              contract: contractId,
+              functionName: "set-sbtc-contract",
+              functionArgs: [sbtcPrincipal],
+              address: walletAddress,
+              network: settings.net,
+              postConditionMode: "allow",
+            });
+            
+            console.log("Response:", res);
+            const txid = (res)?.txid || (res)?.transaction || "unknown";
+            byId("owner-result").textContent = `✅ Success! TxID: ${txid}\n\nNow verify using Security Check below.`;
+            showResult(`sBTC contract set. TxID: ${txid}`, "success");
+          } catch (e) {
+            console.error("❌ Error setting sBTC contract:", e);
+            byId("owner-result").textContent = `❌ Error: ${e?.message || String(e)}`;
+            showResult("Failed to set sBTC contract: " + (e?.message || String(e)), "error");
+          }
+        };
+
+        // Security Check Functions
+        byId("btn-check-configured-sbtc").onclick = async () => {
+          try {
+            console.log("🔍 Checking configured sBTC...");
+            setEnvFromInputs();
+            const configured = await B.getConfiguredSbtcContract();
+            console.log("Configured sBTC:", configured);
+            
+            const configSpan = byId("configured-sbtc");
+            
+            if (configured) {
+              configSpan.textContent = configured;
+              configSpan.style.color = "#059669";
+              console.log("✅ sBTC is configured:", configured);
+            } else {
+              configSpan.textContent = "Not set (call set-sbtc-contract first)";
+              configSpan.style.color = "#dc2626";
+              console.log("⚠️ sBTC not configured");
+            }
+            
+            // Auto-update tester info
+            const settings = B.getSettings();
+            const testerSpan = byId("tester-sbtc");
+            const testerAddress = `${settings.ftCa}.${settings.ftCn}`;
+            testerSpan.textContent = testerAddress;
+            console.log("Tester will pass:", testerAddress);
+            
+            showResult("Configuration checked", "success");
+          } catch (e) {
+            console.error("❌ Error checking configuration:", e);
+            byId("configured-sbtc").textContent = `Error: ${e?.message || String(e)}`;
+            showResult("Failed to check configuration: " + (e?.message || String(e)), "error");
+          }
+        };
+
+        byId("btn-verify-match").onclick = async () => {
+          try {
+            console.log("✓ Verifying configuration match...");
+            setEnvFromInputs();
+            const configured = await B.getConfiguredSbtcContract();
+            const settings = B.getSettings();
+            const testerAddress = `${settings.ftCa}.${settings.ftCn}`;
+            
+            console.log("Contract expects:", configured);
+            console.log("Tester will pass:", testerAddress);
+            
+            const matchSpan = byId("match-status");
+            
+            if (!configured) {
+              matchSpan.textContent = "Not configured in contract";
+              matchSpan.className = "status error";
+              byId("configured-sbtc").textContent = "Not set";
+              byId("tester-sbtc").textContent = testerAddress;
+              console.warn("⚠️ sBTC not configured in contract");
+              showResult("Contract sBTC not configured yet", "error");
+              return;
+            }
+            
+            if (configured === testerAddress) {
+              matchSpan.textContent = "✅ MATCH - Ready to test!";
+              matchSpan.className = "status success";
+              console.log("✅ Configuration matches!");
+              showResult("Configuration matches - ready to test!", "success");
+            } else {
+              matchSpan.textContent = "❌ MISMATCH - Transactions will fail!";
+              matchSpan.className = "status error";
+              console.error("❌ Mismatch!");
+              console.error("  Contract expects:", configured);
+              console.error("  Tester will pass:", testerAddress);
+              showResult(`Mismatch detected! Contract expects: ${configured}`, "error");
+            }
+            
+            // Update displays
+            byId("configured-sbtc").textContent = configured;
+            byId("tester-sbtc").textContent = testerAddress;
+          } catch (e) {
+            console.error("❌ Error verifying match:", e);
+            byId("match-status").textContent = `Error: ${e?.message || String(e)}`;
+            byId("match-status").className = "status error";
+            showResult("Failed to verify match: " + (e?.message || String(e)), "error");
+          }
+        };
 
         // Connection
         byId("btn-connect").onclick = async () => {

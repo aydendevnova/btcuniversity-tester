@@ -35,8 +35,8 @@ const state: BtcUniSettings = (() => {
   const saved = getPersisted<Partial<BtcUniSettings>>(SETTINGS_KEY, {});
   return {
     net: (saved.net as NetworkKind) || "testnet",
-    ca: saved.ca || "ST351E8C8VBAQ7PTRV0ZMVQXNWBBX9B3WTHR2Z27R",
-    cn: saved.cn || "btcuni",
+    ca: saved.ca || "STGBG5A16AKQW65GYK23CXK3XPRVSVZFJKX0BA98",
+    cn: saved.cn || "btc-university",
     ftCa: saved.ftCa || "ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT",
     ftCn: saved.ftCn || "sbtc-token",
     oracleCa: saved.oracleCa || "",
@@ -88,7 +88,7 @@ function pickAddressForNetwork(
     const stacksAddr = addr.address || addr.stxAddress || addr;
     console.log("Extracted Stacks address:", stacksAddr);
 
-    if (typeof stacksAddr === "string" && /^ST[0-9A-Z]{39}$/.test(stacksAddr)) {
+    if (typeof stacksAddr === "string" && /^S[TP][0-9A-Z]{38,39}$/.test(stacksAddr)) {
       // Verify network matches if specified in address object
       if (addr.network && addr.network !== net) {
         console.log("Network mismatch - skipping address");
@@ -109,7 +109,7 @@ function pickAddressForNetwork(
 
       if (
         typeof nestedAddr === "string" &&
-        /^ST[0-9A-Z]{39}$/.test(nestedAddr)
+        /^S[TP][0-9A-Z]{38,39}$/.test(nestedAddr)
       ) {
         console.log("Found valid nested Stacks address:", nestedAddr);
         return nestedAddr;
@@ -156,6 +156,25 @@ export const BtcUniversity = {
     setPersisted(SETTINGS_KEY, state);
     return { ...state };
   },
+  
+  // SECURITY: Check what sBTC contract is configured in the deployed contract
+  async getConfiguredSbtcContract(): Promise<string | null> {
+    const sender = await getOrFetchAddress();
+    if (!state.ca || !state.cn)
+      throw new Error("Set contract address and name");
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: state.ca,
+      contractName: state.cn,
+      functionName: "get-sbtc-contract",
+      functionArgs: [],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return value?.value || null;
+  },
   isConnected(): boolean {
     return !!selectedAddress;
   },
@@ -187,12 +206,16 @@ export const BtcUniversity = {
     const sender = await getOrFetchAddress();
     if (!state.ca || !state.cn)
       throw new Error("Set contract address and name");
+    if (!state.ftCa || !state.ftCn)
+      throw new Error("Set sBTC token contract address and name");
 
     const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
+    const sbtcPrincipal = Cl.contractPrincipal(state.ftCa, state.ftCn);
+    
     const res = await request("stx_callContract", {
       contract: contractId,
       functionName: "enroll-whitelist",
-      functionArgs: [],
+      functionArgs: [sbtcPrincipal],
       address: sender,
       network: state.net,
       postConditionMode: "allow",
@@ -357,12 +380,16 @@ export const BtcUniversity = {
     const sender = await getOrFetchAddress();
     if (!state.ca || !state.cn)
       throw new Error("Set contract address and name");
+    if (!state.ftCa || !state.ftCn)
+      throw new Error("Set sBTC token contract address and name");
 
     const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
+    const sbtcPrincipal = Cl.contractPrincipal(state.ftCa, state.ftCn);
+    
     const res = await request("stx_callContract", {
       contract: contractId,
       functionName: "enroll-course",
-      functionArgs: [Cl.uint(BigInt(courseId))],
+      functionArgs: [Cl.uint(BigInt(courseId)), sbtcPrincipal],
       address: sender,
       network: state.net,
       postConditionMode: "allow",
@@ -446,12 +473,16 @@ export const BtcUniversity = {
     const sender = await getOrFetchAddress();
     if (!state.ca || !state.cn)
       throw new Error("Set contract address and name");
+    if (!state.ftCa || !state.ftCn)
+      throw new Error("Set sBTC token contract address and name");
 
     const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
+    const sbtcPrincipal = Cl.contractPrincipal(state.ftCa, state.ftCn);
+    
     const res = await request("stx_callContract", {
       contract: contractId,
       functionName: "claim-course-fees",
-      functionArgs: [Cl.uint(BigInt(courseId))],
+      functionArgs: [Cl.uint(BigInt(courseId)), sbtcPrincipal],
       address: sender,
       network: state.net,
       postConditionMode: "allow",
