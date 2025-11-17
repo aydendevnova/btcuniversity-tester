@@ -63,10 +63,11 @@ Visit `http://localhost:5173` to access the testing interface.
 The tester auto-configures for testnet with these defaults:
 
 - **Network**: testnet
-- **BTC Uni Contract**: `STGBG5A16AKQW65GYK23CXK3XPRVSVZFJKX0BA98.btc-university`
+- **BTC Uni Contract**: `ST3FK5E8ZC7KBHTQKRQ4TEXSZFSCQGJMYZ4Z058VY.btc-university`
 - **sBTC Token**: `ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token` ✅ Auto-filled
 
 **Important Setup:**
+
 1. Update your deployed contract address in the interface
 2. Make sure contract owner has called `set-sbtc-contract` after deployment
 3. Verify configured sBTC matches (use "Check Configured sBTC" button)

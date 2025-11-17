@@ -35,7 +35,7 @@ const state: BtcUniSettings = (() => {
   const saved = getPersisted<Partial<BtcUniSettings>>(SETTINGS_KEY, {});
   return {
     net: (saved.net as NetworkKind) || "testnet",
-    ca: saved.ca || "STGBG5A16AKQW65GYK23CXK3XPRVSVZFJKX0BA98",
+    ca: saved.ca || "ST3FK5E8ZC7KBHTQKRQ4TEXSZFSCQGJMYZ4Z058VY",
     cn: saved.cn || "btc-university",
     ftCa: saved.ftCa || "ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT",
     ftCn: saved.ftCn || "sbtc-token",
@@ -88,7 +88,10 @@ function pickAddressForNetwork(
     const stacksAddr = addr.address || addr.stxAddress || addr;
     console.log("Extracted Stacks address:", stacksAddr);
 
-    if (typeof stacksAddr === "string" && /^S[TP][0-9A-Z]{38,39}$/.test(stacksAddr)) {
+    if (
+      typeof stacksAddr === "string" &&
+      /^S[TP][0-9A-Z]{38,39}$/.test(stacksAddr)
+    ) {
       // Verify network matches if specified in address object
       if (addr.network && addr.network !== net) {
         console.log("Network mismatch - skipping address");
@@ -156,7 +159,7 @@ export const BtcUniversity = {
     setPersisted(SETTINGS_KEY, state);
     return { ...state };
   },
-  
+
   // SECURITY: Check what sBTC contract is configured in the deployed contract
   async getConfiguredSbtcContract(): Promise<string | null> {
     const sender = await getOrFetchAddress();
@@ -211,7 +214,7 @@ export const BtcUniversity = {
 
     const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
     const sbtcPrincipal = Cl.contractPrincipal(state.ftCa, state.ftCn);
-    
+
     const res = await request("stx_callContract", {
       contract: contractId,
       functionName: "enroll-whitelist",
@@ -385,7 +388,7 @@ export const BtcUniversity = {
 
     const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
     const sbtcPrincipal = Cl.contractPrincipal(state.ftCa, state.ftCn);
-    
+
     const res = await request("stx_callContract", {
       contract: contractId,
       functionName: "enroll-course",
@@ -478,7 +481,7 @@ export const BtcUniversity = {
 
     const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
     const sbtcPrincipal = Cl.contractPrincipal(state.ftCa, state.ftCn);
-    
+
     const res = await request("stx_callContract", {
       contract: contractId,
       functionName: "claim-course-fees",
