@@ -213,7 +213,7 @@
           <input
             id="contract-address"
             placeholder="ST..."
-            value="STHJGT945DGCQH08X9KB04V2DBHERWTQZCN5BVJS"
+            value="STE8EXW8APGP8Y9WT9K102KCGEKZY4KH0VKSXD9Y"
           />
         </div>
         <div>
@@ -591,6 +591,102 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
         <span class="muted">
           Instructor can claim accumulated fees from enrollments
         </span>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>NFT Certificate Management</legend>
+      
+      <h2>Mint NFT for Student (Instructor Only)</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 16px">
+        <div>
+          <label for="nft-student-address">Student Address</label>
+          <input
+            id="nft-student-address"
+            type="text"
+            placeholder="ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"
+            style="max-width: 360px"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btn-mint-nft" class="primary">
+          Mint NFT Certificate
+        </button>
+        <span class="muted">
+          Grant a completion certificate to a student (one per student)
+        </span>
+      </div>
+
+      <h2>Check NFT Status</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 16px">
+        <div>
+          <label for="check-nft-address">Student Address</label>
+          <input
+            id="check-nft-address"
+            type="text"
+            placeholder="ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"
+            style="max-width: 360px"
+          />
+        </div>
+      </div>
+      <div class="row" style="gap: 8px; margin-bottom: 16px">
+        <button id="btn-check-nft" class="primary">
+          Check NFT Status
+        </button>
+        <button id="btn-check-my-nft" class="success">
+          Check My NFT
+        </button>
+        <span class="muted">
+          View if address has received an NFT certificate
+        </span>
+      </div>
+      
+      <div id="nft-status" style="display: none; margin-top: 12px">
+        <div class="card">
+          <strong>NFT Certificate Status</strong><br/>
+          <div id="nft-status-content" class="mono"></div>
+        </div>
+      </div>
+
+      <h2>NFT Instructor Management</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 16px">
+        <div>
+          <label for="nft-instructor-address">Instructor Address</label>
+          <input
+            id="nft-instructor-address"
+            type="text"
+            placeholder="ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"
+            style="max-width: 360px"
+          />
+        </div>
+      </div>
+      <div class="row" style="gap: 8px; margin-bottom: 16px">
+        <button id="btn-add-nft-instructor" class="primary">
+          Add NFT Instructor
+        </button>
+        <button id="btn-check-nft-instructor" class="primary">
+          Check Instructor Status
+        </button>
+        <button id="btn-check-am-i-instructor" class="success">
+          Am I Instructor?
+        </button>
+      </div>
+
+      <h2>NFT Statistics</h2>
+      <div class="row">
+        <button id="btn-get-nft-stats" class="primary">
+          Get NFT Statistics
+        </button>
+        <span class="muted">
+          View total NFTs minted
+        </span>
+      </div>
+      <div id="nft-stats" style="display: none; margin-top: 12px">
+        <div class="card">
+          <strong>NFT Statistics</strong><br/>
+          <div id="nft-stats-content" class="mono"></div>
+        </div>
       </div>
     </fieldset>
 
@@ -1175,6 +1271,168 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
         $cn.onchange = () => B.setContract($ca.value, $cn.value);
         $ftCa.onchange = () => B.setSbtcToken($ftCa.value, $ftCn.value);
         $ftCn.onchange = () => B.setSbtcToken($ftCa.value, $ftCn.value);
+
+        // NFT Functions
+        byId("btn-mint-nft").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const studentAddr = byId("nft-student-address").value;
+            if (!studentAddr) {
+              alert("Enter student address");
+              return;
+            }
+            const tx = await B.mintNftForStudent(studentAddr);
+            showResult(`Mint NFT tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-check-nft").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const studentAddr = byId("check-nft-address").value;
+            if (!studentAddr) {
+              alert("Enter student address");
+              return;
+            }
+            
+            const hasNft = await B.hasNft(studentAddr);
+            const $nftStatus = byId("nft-status");
+            const $nftContent = byId("nft-status-content");
+            
+            if (hasNft) {
+              const tokenInfo = await B.getStudentTokenId(studentAddr);
+              $nftContent.innerHTML = `
+                <span class="status success">HAS NFT</span><br/>
+                Address: ${studentAddr}<br/>
+                Token ID: ${tokenInfo?.tokenId || "N/A"}<br/>
+                Status: Minted ✓
+              `;
+            } else {
+              $nftContent.innerHTML = `
+                <span class="status error">NO NFT</span><br/>
+                Address: ${studentAddr}<br/>
+                This student has not received an NFT certificate yet.
+              `;
+            }
+            
+            $nftStatus.style.display = "block";
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-check-my-nft").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const myAddr = B.getAddress();
+            if (!myAddr) {
+              alert("Connect wallet first");
+              return;
+            }
+            
+            const hasNft = await B.hasNft(myAddr);
+            const $nftStatus = byId("nft-status");
+            const $nftContent = byId("nft-status-content");
+            
+            if (hasNft) {
+              const tokenInfo = await B.getStudentTokenId(myAddr);
+              $nftContent.innerHTML = `
+                <span class="status success">YOU HAVE AN NFT</span><br/>
+                Your Address: ${myAddr}<br/>
+                Token ID: ${tokenInfo?.tokenId || "N/A"}<br/>
+                Status: Minted ✓<br/>
+                <br/>
+                🎓 Congratulations! You have earned your BTC University certificate!
+              `;
+            } else {
+              $nftContent.innerHTML = `
+                <span class="status info">NO NFT YET</span><br/>
+                Your Address: ${myAddr}<br/>
+                You have not received an NFT certificate yet.<br/>
+                Complete courses to earn your certificate!
+              `;
+            }
+            
+            $nftStatus.style.display = "block";
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-add-nft-instructor").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const instructorAddr = byId("nft-instructor-address").value;
+            if (!instructorAddr) {
+              alert("Enter instructor address");
+              return;
+            }
+            const tx = await B.addNftInstructor(instructorAddr);
+            showResult(`Add NFT instructor tx: ${tx}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-check-nft-instructor").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const instructorAddr = byId("nft-instructor-address").value;
+            if (!instructorAddr) {
+              alert("Enter instructor address");
+              return;
+            }
+            const isInstructor = await B.isNftInstructor(instructorAddr);
+            showResult(
+              `${instructorAddr} is ${isInstructor ? "✓" : "✗"} an NFT instructor`,
+              isInstructor ? "success" : "info"
+            );
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-check-am-i-instructor").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const myAddr = B.getAddress();
+            if (!myAddr) {
+              alert("Connect wallet first");
+              return;
+            }
+            const isInstructor = await B.isNftInstructor(myAddr);
+            showResult(
+              `You ${isInstructor ? "✓ ARE" : "✗ ARE NOT"} an NFT instructor`,
+              isInstructor ? "success" : "info"
+            );
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
+
+        byId("btn-get-nft-stats").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const totalNfts = await B.getLastNftTokenId();
+            
+            const $nftStats = byId("nft-stats");
+            const $nftStatsContent = byId("nft-stats-content");
+            
+            $nftStatsContent.innerHTML = `
+              Total NFTs Minted: ${totalNfts}<br/>
+              Last Token ID: ${totalNfts}<br/>
+              <br/>
+              <span class="muted">Each student can receive one NFT certificate</span>
+            `;
+            
+            $nftStats.style.display = "block";
+            showResult(`Total NFTs minted: ${totalNfts}`, "success");
+          } catch (e) {
+            showResult(e?.message || String(e), "error");
+          }
+        };
 
         // Init
         try {

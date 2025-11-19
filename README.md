@@ -11,6 +11,7 @@ Web-based testing interface for BTC University smart contracts with **secure own
 - **Course Enrollment**: Enroll in courses with sBTC payments (validated)
 - **Fee Claiming**: Instructors claim accumulated sBTC fees (validated)
 - **Course Completion**: Track student progress
+- **NFT Certificates**: Instructors mint completion certificates (one per student)
 
 **✅ sBTC testnet contract auto-configured** - Ready to test immediately!  
 **🔒 Security**: Contract validates sBTC address server-side (see `SECURITY-NOTE.md`)
@@ -49,6 +50,16 @@ The BTC University platform consists of:
 
 - **Claim Fees**: Instructors claim accumulated sBTC from enrollments
 
+### NFT Certificate Management
+
+- **Mint NFT**: Instructors grant completion certificates to students
+- **Check Status**: View if a student has received an NFT certificate
+- **View My NFT**: Students can check their own certificate status
+- **Instructor Management**: Add instructors who can mint NFTs
+- **Statistics**: View total NFTs minted across the platform
+
+**Note**: Each student can only receive one NFT certificate per contract, representing overall achievement.
+
 ## Setup
 
 ```bash
@@ -63,7 +74,7 @@ Visit `http://localhost:5173` to access the testing interface.
 The tester auto-configures for testnet with these defaults:
 
 - **Network**: testnet
-- **BTC Uni Contract**: `STHJGT945DGCQH08X9KB04V2DBHERWTQZCN5BVJS.btc-university`
+- **BTC Uni Contract**: `STE8EXW8APGP8Y9WT9K102KCGEKZY4KH0VKSXD9Y.btc-university`
 - **sBTC Token**: `ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token` ✅ Auto-filled
 
 **Important Setup:**
@@ -104,6 +115,18 @@ Option B: Owner adds you to whitelist manually
 - View accumulated fees for your courses
 - Claim sBTC fees to your wallet
 
+### 7. NFT Certificate Management
+
+**For Instructors:**
+- Mint NFT certificates for students who complete courses
+- Add other instructors who can also mint NFTs
+- View total NFTs minted across the platform
+
+**For Students:**
+- Check your NFT certificate status with "Check My NFT"
+- View your token ID if you have received a certificate
+- Each student can receive only one NFT certificate
+
 ## Contract Integration
 
 The tester uses `@stacks/connect` for wallet interactions and `@stacks/transactions` for read-only calls.
@@ -131,6 +154,15 @@ BtcUniversity.getEnrolledIds(student);
 
 // Fees (auto-passes sBTC contract, validated by contract)
 BtcUniversity.claimCourseFees(courseId);
+
+// NFT Certificates
+BtcUniversity.mintNftForStudent(studentAddress);
+BtcUniversity.hasNft(studentAddress);
+BtcUniversity.getStudentTokenId(studentAddress);
+BtcUniversity.addNftInstructor(instructorAddress);
+BtcUniversity.isNftInstructor(address);
+BtcUniversity.getLastNftTokenId();
+BtcUniversity.getNftOwner(tokenId);
 ```
 
 ## Build

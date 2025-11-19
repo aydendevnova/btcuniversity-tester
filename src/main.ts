@@ -35,7 +35,7 @@ const state: BtcUniSettings = (() => {
   const saved = getPersisted<Partial<BtcUniSettings>>(SETTINGS_KEY, {});
   return {
     net: (saved.net as NetworkKind) || "testnet",
-    ca: saved.ca || "STHJGT945DGCQH08X9KB04V2DBHERWTQZCN5BVJS",
+    ca: saved.ca || "STE8EXW8APGP8Y9WT9K102KCGEKZY4KH0VKSXD9Y",
     cn: saved.cn || "btc-university",
     ftCa: saved.ftCa || "ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT",
     ftCn: saved.ftCn || "sbtc-token",
@@ -574,6 +574,168 @@ export const BtcUniversity = {
     });
     const value = cvToValue(cv) as any;
     return value?.value?.link || null;
+  },
+
+  // NFT Functions
+  async mintNftForStudent(
+    student: string,
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<string> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const contractId = `${nftCa}.${nftCn}` as `${string}.${string}`;
+    const res = await request("stx_callContract", {
+      contract: contractId,
+      functionName: "mint-for-student",
+      functionArgs: [Cl.principal(student)],
+      address: sender,
+      network: state.net,
+      postConditionMode: "allow",
+    });
+    const txid = (res as any)?.txid || (res as any)?.transaction || undefined;
+    if (!txid) throw new Error("No txid returned");
+    return txid as string;
+  },
+
+  async addNftInstructor(
+    instructor: string,
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<string> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const contractId = `${nftCa}.${nftCn}` as `${string}.${string}`;
+    const res = await request("stx_callContract", {
+      contract: contractId,
+      functionName: "add-instructor",
+      functionArgs: [Cl.principal(instructor)],
+      address: sender,
+      network: state.net,
+      postConditionMode: "allow",
+    });
+    const txid = (res as any)?.txid || (res as any)?.transaction || undefined;
+    if (!txid) throw new Error("No txid returned");
+    return txid as string;
+  },
+
+  async isNftInstructor(
+    address: string,
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<boolean> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: nftCa,
+      contractName: nftCn,
+      functionName: "is-instructor",
+      functionArgs: [Cl.principal(address)],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return value === true;
+  },
+
+  async hasNft(
+    student: string,
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<boolean> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: nftCa,
+      contractName: nftCn,
+      functionName: "has-nft",
+      functionArgs: [Cl.principal(student)],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return value?.value === true;
+  },
+
+  async getStudentTokenId(
+    student: string,
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<{ tokenId: number; minted: boolean } | null> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: nftCa,
+      contractName: nftCn,
+      functionName: "get-student-token-id",
+      functionArgs: [Cl.principal(student)],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    if (value?.value) {
+      return {
+        tokenId: Number(value.value["token-id"] || value.value.tokenId || 0),
+        minted: value.value.minted === true,
+      };
+    }
+    return null;
+  },
+
+  async getNftOwner(
+    tokenId: bigint | number | string,
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<string | null> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: nftCa,
+      contractName: nftCn,
+      functionName: "get-owner",
+      functionArgs: [Cl.uint(BigInt(tokenId))],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return value?.value || null;
+  },
+
+  async getLastNftTokenId(
+    nftContractAddress?: string,
+    nftContractName?: string
+  ): Promise<number> {
+    const sender = await getOrFetchAddress();
+    const nftCa = nftContractAddress || state.ca;
+    const nftCn = nftContractName || "btc-university-nft";
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: nftCa,
+      contractName: nftCn,
+      functionName: "get-last-token-id",
+      functionArgs: [],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return Number(value?.value || 0);
   },
 };
 
