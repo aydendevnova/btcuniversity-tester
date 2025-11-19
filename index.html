@@ -213,7 +213,7 @@
           <input
             id="contract-address"
             placeholder="ST..."
-            value="ST3FK5E8ZC7KBHTQKRQ4TEXSZFSCQGJMYZ4Z058VY"
+            value="STHJGT945DGCQH08X9KB04V2DBHERWTQZCN5BVJS"
           />
         </div>
         <div>
@@ -345,8 +345,50 @@
     </fieldset>
 
     <fieldset>
+      <legend>Instructor Management</legend>
+      <h2>Add Instructor</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 12px">
+        <div>
+          <label for="new-instructor-address">Instructor Address</label>
+          <input
+            id="new-instructor-address"
+            type="text"
+            placeholder="ST..."
+            style="min-width: 300px"
+          />
+        </div>
+        <button id="btn-add-instructor" class="primary">Add Instructor</button>
+      </div>
+
+      <h2 style="margin-top: 16px">Check Instructor Status</h2>
+      <div class="row" style="gap: 16px">
+        <div>
+          <label for="check-instructor-address">Address</label>
+          <input
+            id="check-instructor-address"
+            type="text"
+            placeholder="ST..."
+            style="min-width: 300px"
+          />
+        </div>
+        <button id="btn-check-instructor">Check Is Instructor</button>
+      </div>
+      <div id="instructor-result" class="result"></div>
+    </fieldset>
+
+    <fieldset>
       <legend>Course Management</legend>
-      <h2>Add New Course (Owner Only)</h2>
+      <h2>Add or Modify Course (Instructor Only)</h2>
+      <div class="input-group">
+        <label for="course-id-field">Course ID (0 for new course, existing ID to modify)</label>
+        <input
+          id="course-id-field"
+          type="number"
+          placeholder="0"
+          value="0"
+          style="max-width: 120px"
+        />
+      </div>
       <div class="input-group">
         <label for="course-name">Course Name</label>
         <input
@@ -387,8 +429,46 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
         </div>
       </div>
       <div class="row" style="margin-top: 8px">
-        <button id="btn-add-course" class="primary">Add Course</button>
+        <button id="btn-add-course" class="primary">Add/Modify Course</button>
       </div>
+
+      <h2 style="margin-top: 16px">Meeting Link Management</h2>
+      <div class="row" style="gap: 16px; margin-bottom: 12px">
+        <div>
+          <label for="meeting-course-id">Course ID</label>
+          <input
+            id="meeting-course-id"
+            type="number"
+            placeholder="1"
+            value="1"
+            style="max-width: 120px"
+          />
+        </div>
+        <div>
+          <label for="meeting-link">Meeting Link</label>
+          <input
+            id="meeting-link"
+            type="text"
+            placeholder="https://zoom.us/j/..."
+            style="min-width: 300px"
+          />
+        </div>
+        <button id="btn-set-meeting-link" class="success">Set Meeting Link</button>
+      </div>
+      <div class="row" style="gap: 16px">
+        <div>
+          <label for="get-meeting-course-id">Course ID</label>
+          <input
+            id="get-meeting-course-id"
+            type="number"
+            placeholder="1"
+            value="1"
+            style="max-width: 120px"
+          />
+        </div>
+        <button id="btn-get-meeting-link">Get Meeting Link</button>
+      </div>
+      <div id="meeting-link-result" class="result"></div>
 
       <h2 style="margin-top: 16px">View Courses</h2>
       <div class="row" style="margin-bottom: 8px">
@@ -810,10 +890,46 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
           }
         };
 
+        // Instructors
+        byId("btn-add-instructor").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const instructor = byId("new-instructor-address").value;
+            if (!instructor) {
+              alert("Enter instructor address");
+              return;
+            }
+            const tx = await B.addInstructor(instructor);
+            byId("instructor-result").textContent = `Add instructor tx: ${tx}`;
+            byId("instructor-result").className = "result success";
+          } catch (e) {
+            byId("instructor-result").textContent = e?.message || String(e);
+            byId("instructor-result").className = "result error";
+          }
+        };
+
+        byId("btn-check-instructor").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const address = byId("check-instructor-address").value;
+            if (!address) {
+              alert("Enter address to check");
+              return;
+            }
+            const isInstructor = await B.isInstructor(address);
+            byId("instructor-result").textContent = `Address ${address} is ${isInstructor ? "" : "NOT "}an instructor`;
+            byId("instructor-result").className = `result ${isInstructor ? "success" : "info"}`;
+          } catch (e) {
+            byId("instructor-result").textContent = e?.message || String(e);
+            byId("instructor-result").className = "result error";
+          }
+        };
+
         // Courses
         byId("btn-add-course").onclick = async () => {
           try {
             setEnvFromInputs();
+            const courseId = byId("course-id-field").value || "0";
             const name = byId("course-name").value;
             const details = byId("course-details").value;
             const instructor =
@@ -827,15 +943,52 @@ Learn the fundamentals of Bitcoin and blockchain technology</textarea
             }
 
             const tx = await B.addCourse(
+              courseId,
               name,
               details,
               instructor,
               price,
               maxStudents
             );
-            showResult(`Add course tx: ${tx}`, "success");
+            showResult(`${courseId === "0" ? "Add" : "Modify"} course tx: ${tx}`, "success");
           } catch (e) {
             showResult(e?.message || String(e), "error");
+          }
+        };
+
+        // Meeting Links
+        byId("btn-set-meeting-link").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("meeting-course-id").value;
+            const link = byId("meeting-link").value;
+            if (!courseId || !link) {
+              alert("Enter course ID and meeting link");
+              return;
+            }
+            const tx = await B.setMeetingLink(courseId, link);
+            byId("meeting-link-result").textContent = `Set meeting link tx: ${tx}`;
+            byId("meeting-link-result").className = "result success";
+          } catch (e) {
+            byId("meeting-link-result").textContent = e?.message || String(e);
+            byId("meeting-link-result").className = "result error";
+          }
+        };
+
+        byId("btn-get-meeting-link").onclick = async () => {
+          try {
+            setEnvFromInputs();
+            const courseId = byId("get-meeting-course-id").value;
+            if (!courseId) {
+              alert("Enter course ID");
+              return;
+            }
+            const link = await B.getMeetingLink(courseId);
+            byId("meeting-link-result").textContent = link ? `Meeting link: ${link}` : "No meeting link set for this course";
+            byId("meeting-link-result").className = `result ${link ? "success" : "info"}`;
+          } catch (e) {
+            byId("meeting-link-result").textContent = e?.message || String(e);
+            byId("meeting-link-result").className = "result error";
           }
         };
 

@@ -35,7 +35,7 @@ const state: BtcUniSettings = (() => {
   const saved = getPersisted<Partial<BtcUniSettings>>(SETTINGS_KEY, {});
   return {
     net: (saved.net as NetworkKind) || "testnet",
-    ca: saved.ca || "ST3FK5E8ZC7KBHTQKRQ4TEXSZFSCQGJMYZ4Z058VY",
+    ca: saved.ca || "STHJGT945DGCQH08X9KB04V2DBHERWTQZCN5BVJS",
     cn: saved.cn || "btc-university",
     ftCa: saved.ftCa || "ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT",
     ftCn: saved.ftCn || "sbtc-token",
@@ -284,8 +284,47 @@ export const BtcUniversity = {
     return value?.value === true;
   },
 
+  // Instructor Management
+  async addInstructor(instructor: string): Promise<string> {
+    const sender = await getOrFetchAddress();
+    if (!state.ca || !state.cn)
+      throw new Error("Set contract address and name");
+
+    const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
+    const res = await request("stx_callContract", {
+      contract: contractId,
+      functionName: "add-instructor",
+      functionArgs: [Cl.principal(instructor)],
+      address: sender,
+      network: state.net,
+      postConditionMode: "allow",
+    });
+    const txid = (res as any)?.txid || (res as any)?.transaction || undefined;
+    if (!txid) throw new Error("No txid returned");
+    return txid as string;
+  },
+
+  async isInstructor(address: string): Promise<boolean> {
+    const sender = await getOrFetchAddress();
+    if (!state.ca || !state.cn)
+      throw new Error("Set contract address and name");
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: state.ca,
+      contractName: state.cn,
+      functionName: "is-instructor",
+      functionArgs: [Cl.principal(address)],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return value === true;
+  },
+
   // Course Functions
   async addCourse(
+    courseId: bigint | number | string,
     name: string,
     details: string,
     instructor: string,
@@ -301,6 +340,7 @@ export const BtcUniversity = {
       contract: contractId,
       functionName: "add-course",
       functionArgs: [
+        Cl.uint(BigInt(courseId)),
         Cl.stringAscii(name),
         Cl.stringAscii(details),
         Cl.principal(instructor),
@@ -493,6 +533,47 @@ export const BtcUniversity = {
     const txid = (res as any)?.txid || (res as any)?.transaction || undefined;
     if (!txid) throw new Error("No txid returned");
     return txid as string;
+  },
+
+  // Meeting Link Management
+  async setMeetingLink(
+    courseId: bigint | number | string,
+    link: string
+  ): Promise<string> {
+    const sender = await getOrFetchAddress();
+    if (!state.ca || !state.cn)
+      throw new Error("Set contract address and name");
+
+    const contractId = `${state.ca}.${state.cn}` as `${string}.${string}`;
+    const res = await request("stx_callContract", {
+      contract: contractId,
+      functionName: "set-meeting-link",
+      functionArgs: [Cl.uint(BigInt(courseId)), Cl.stringAscii(link)],
+      address: sender,
+      network: state.net,
+      postConditionMode: "allow",
+    });
+    const txid = (res as any)?.txid || (res as any)?.transaction || undefined;
+    if (!txid) throw new Error("No txid returned");
+    return txid as string;
+  },
+
+  async getMeetingLink(courseId: bigint | number | string): Promise<string | null> {
+    const sender = await getOrFetchAddress();
+    if (!state.ca || !state.cn)
+      throw new Error("Set contract address and name");
+
+    const network = getNetwork();
+    const cv = await fetchCallReadOnlyFunction({
+      contractAddress: state.ca,
+      contractName: state.cn,
+      functionName: "get-meeting-link",
+      functionArgs: [Cl.uint(BigInt(courseId))],
+      senderAddress: sender,
+      network,
+    });
+    const value = cvToValue(cv) as any;
+    return value?.value?.link || null;
   },
 };
 
